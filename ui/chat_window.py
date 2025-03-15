@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont, QColor, QPalette
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
 from googletrans import Translator  # For translation
 import google.generativeai as genai  # For Gemini AI API
 
@@ -20,6 +21,8 @@ class ChatApp(QMainWindow):
     def init_ui(self):
         self.setWindowTitle(f"Chat Application - {self.username}")
         self.setGeometry(100, 100, 800, 600)
+
+        self.setWindowIcon(QIcon("logo.ico"))
 
         layout = QVBoxLayout()
 
@@ -47,6 +50,24 @@ class ChatApp(QMainWindow):
 
         # Chat Layout
         chat_layout = QVBoxLayout()
+
+        # Logout Button
+        self.logout_button = QPushButton("Logout", self)
+        self.logout_button.setStyleSheet("""
+            QPushButton {
+                background-color: #0078D7; /* Blue color */
+                color: white;
+                font-size: 16px;
+                font-weight: bold;
+                padding: 10px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #005A9E;
+            }
+        """)
+        self.logout_button.clicked.connect(self.logout)
+        chat_layout.addWidget(self.logout_button)
 
         # AI Chatbot Button
         self.ai_chatbot_button = QPushButton("Open AI Chatbot", self)
@@ -137,6 +158,12 @@ class ChatApp(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "API key not provided.")
 
+    def logout(self):
+        """Handle user logout by closing the current session and returning to the login window."""
+        QMessageBox.information(self, "Logout", "You have been logged out.")
+        self.close()  # Close the chat window
+        # Implement redirection to the login screen if applicable
+    
     def send_message(self):
         """Handle sending a message."""
         message = self.msg_input.text().strip()

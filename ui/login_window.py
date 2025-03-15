@@ -1,8 +1,10 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QVBoxLayout, QLabel, QLineEdit, QPushButton, QWidget, QMessageBox, QHBoxLayout, QFileDialog
+    QMainWindow, QVBoxLayout, QLabel, QLineEdit, QPushButton, QWidget, QMessageBox, QHBoxLayout, QFileDialog, 
 )
 from PyQt5.QtGui import QPixmap, QFont
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon
+
 import sqlite3
 from ui.chat_window import ChatApp  # Import the ChatApp class
 
@@ -14,6 +16,8 @@ class LoginWindow(QMainWindow):
     def init_ui(self):
         self.setWindowTitle("CHAT APPLICATION")
         self.setGeometry(100, 100, 400, 300)
+
+        self.setWindowIcon(QIcon("logo.ico"))
 
         layout = QVBoxLayout()
 

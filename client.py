@@ -6,8 +6,8 @@ from ui.chat_window import ChatApp
 from encryption import encrypt_message, decrypt_message
 
 # Server Address and Port
-HOST = '192.168.39.187'
-PORT = 5000
+HOST = '192.168.1.100'  # Localhost (for development and testing)
+PORT = 5000       # Commonly used port for web servers
 
 class Client:
     def __init__(self, username):
