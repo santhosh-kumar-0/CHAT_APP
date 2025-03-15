@@ -23,23 +23,7 @@ class LoginWindow(QMainWindow):
         self.load_logo("logo.png")  # Try to load the default logo
         layout.addWidget(self.logo_label)
 
-        # Add a button to change the logo
-        self.change_logo_button = QPushButton("Change Logo", self)
-        self.change_logo_button.setStyleSheet("""
-            QPushButton {
-                background-color: #FF6347;  /* Tomato Red */
-                color: white;
-                font-size: 12px;
-                padding: 5px;
-                border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #FF4500;  /* Orange Red */
-            }
-        """)
-        self.change_logo_button.clicked.connect(self.change_logo)
-        layout.addWidget(self.change_logo_button)
-
+       
         # Header
         header = QLabel("Welcome to Chat App", self)
         header.setFont(QFont('Arial', 16, QFont.Bold))
@@ -117,17 +101,7 @@ class LoginWindow(QMainWindow):
             self.logo_label.setText("Logo Not Found")
             self.logo_label.setFont(QFont('Arial', 12))
 
-    def change_logo(self):
-        """Allow the user to select a new logo file."""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select Logo Image",
-            "",
-            "Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"
-        )
-        if file_path:
-            self.load_logo(file_path)
-
+    
     def login_user(self):
         """Handle user login."""
         username = self.username_input.text().strip()
