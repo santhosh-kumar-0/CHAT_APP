@@ -14,6 +14,7 @@ class ChatApp(QMainWindow):
         self.dark_mode = False  # Initialize dark_mode attribute
         self.translator = Translator()  # Initialize translator
         self.gemini_model = None  # Initialize Gemini model as None
+        self.gemini_api_key = None  # Initialize Gemini API key as None
         self.init_ui()
 
     def init_ui(self):
@@ -118,11 +119,8 @@ class ChatApp(QMainWindow):
         # Apply colorful button styles
         self.apply_button_styles()
 
-        # Configure Gemini AI
-        self.configure_gemini_ai()
-
     def configure_gemini_ai(self):
-        """Allow the user to configure the Gemini AI API key and model."""
+        """Configure the Gemini AI API key and model."""
         api_key, ok = QInputDialog.getText(
             self,
             "Gemini AI Configuration",
@@ -131,19 +129,9 @@ class ChatApp(QMainWindow):
         if ok and api_key:
             try:
                 genai.configure(api_key=api_key)
-                model_type, ok = QInputDialog.getItem(
-                    self,
-                    "Gemini AI Configuration",
-                    "Select the model type:",
-                    ["gemini-pro", "gemini-ultra"],  # Add more models if available
-                    0,
-                    editable=False
-                )
-                if ok and model_type:
-                    self.gemini_model = genai.GenerativeModel(model_type)
-                    QMessageBox.information(self, "Success", "Gemini AI configured successfully!")
-                else:
-                    QMessageBox.warning(self, "Error", "Model type not selected.")
+                self.gemini_model = genai.GenerativeModel('gemini-pro')  # Use Gemini Pro model
+                self.gemini_api_key = api_key  # Save the API key
+                QMessageBox.information(self, "Success", "Gemini AI configured successfully!")
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to configure Gemini AI: {str(e)}")
         else:
@@ -215,8 +203,9 @@ class ChatApp(QMainWindow):
     def open_ai_chatbot(self):
         """Open the AI Chatbot and interact with Gemini AI."""
         if not self.gemini_model:
-            QMessageBox.warning(self, "Error", "Gemini AI is not configured. Please configure it first.")
-            return
+            self.configure_gemini_ai()  # Prompt for API key if not configured
+            if not self.gemini_model:  # If still not configured, return
+                return
 
         user_message, ok = QInputDialog.getText(
             self,
