@@ -1,37 +1,42 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTextEdit, QLineEdit,
-    QPushButton, QLabel, QListWidget, QMessageBox, QFileDialog, QColorDialog, QInputDialog, QMenu, QApplication
+    QPushButton, QLabel, QListWidget, QMessageBox, QFileDialog, QColorDialog, QInputDialog, QMenu, QApplication, 
 )
 from PyQt5.QtGui import QFont, QColor, QPalette
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt, QSize
 from googletrans import Translator  # For translation
-import google.generativeai as genai  # For Gemini AI API
+import google.generativeai as genai
 
 class ChatApp(QMainWindow):
     def __init__(self, username):
         super().__init__()
         self.username = username
-        self.dark_mode = False  # Initialize dark_mode attribute
-        self.translator = Translator()  # Initialize translator
-        self.gemini_model = None  # Initialize Gemini model as None
-        self.gemini_api_key = None  # Initialize Gemini API key as None
+        self.dark_mode = False
+        self.translator = Translator()
         self.init_ui()
 
     def init_ui(self):
         self.setWindowTitle(f"Chat Application - {self.username}")
         self.setGeometry(100, 100, 800, 600)
-
         self.setWindowIcon(QIcon("logo.ico"))
 
         layout = QVBoxLayout()
 
         # Toggle Light/Dark Mode
-        toggle_layout = QHBoxLayout()
-        self.toggle_button = QPushButton("Toggle Dark Mode", self)
+        self.toggle_button = QPushButton(self)
+        self.toggle_button.setIcon(QIcon("shutter_light_mode.png"))  # Replace with the shutter light mode icon
+        self.toggle_button.setIconSize(QSize(100,100))
+        self.toggle_button.setFixedSize(100,35)  # Small square button
+        self.toggle_button.setStyleSheet("border: none;")  # Remove background and border
         self.toggle_button.clicked.connect(self.toggle_theme)
-        toggle_layout.addWidget(self.toggle_button)
-        layout.addLayout(toggle_layout)
+
+        header_layout = QHBoxLayout()
+        header_layout.addStretch()  # Push the toggle button to the far right
+        header_layout.addWidget(self.toggle_button)  # Add the toggle button
+        layout.addLayout(header_layout)  # Add the header layout to the main layout
 
         # Header
         header = QLabel(f"Welcome, {self.username}")
@@ -53,39 +58,9 @@ class ChatApp(QMainWindow):
 
         # Logout Button
         self.logout_button = QPushButton("Logout", self)
-        self.logout_button.setStyleSheet("""
-            QPushButton {
-                background-color: #0078D7; /* Blue color */
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 10px;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #005A9E;
-            }
-        """)
+        self.logout_button.setStyleSheet(self.get_colorful_button_style("#FF4500", "#FF6347"))
         self.logout_button.clicked.connect(self.logout)
         chat_layout.addWidget(self.logout_button)
-
-        # AI Chatbot Button
-        self.ai_chatbot_button = QPushButton("Open AI Chatbot", self)
-        self.ai_chatbot_button.setStyleSheet("""
-            QPushButton {
-                background-color: #0078D7;
-                color: white;
-                font-size: 16px;
-                font-weight: bold;
-                padding: 10px;
-                border-radius: 8px;
-            }
-            QPushButton:hover {
-                background-color: #005A9E;
-            }
-        """)
-        self.ai_chatbot_button.clicked.connect(self.open_ai_chatbot)
-        chat_layout.addWidget(self.ai_chatbot_button)
 
         # Chat Display
         self.chat_display = QTextEdit(self)
@@ -106,18 +81,7 @@ class ChatApp(QMainWindow):
         # Translate Button
         self.translate_button = QPushButton("Translate", self)
         self.translate_button.clicked.connect(self.translate_selected_message)
-        self.translate_button.setStyleSheet("""
-            QPushButton {
-                background-color: #FF6347; /* Tomato Red */
-                color: #FFFFFF; /* White text */
-                font-weight: bold;
-                border-radius: 8px;
-                padding: 5px;
-            }
-            QPushButton:hover {
-                background-color: #FF4500; /* Orange Red */
-            }
-        """)
+        self.translate_button.setStyleSheet(self.get_colorful_button_style("#4682B4", "#5A9BD4"))
         chat_layout.addWidget(self.translate_button)
         chat_layout.addLayout(message_layout)
 
@@ -137,66 +101,61 @@ class ChatApp(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-        # Apply colorful button styles
+        # Apply colorful styles
         self.apply_button_styles()
 
-    def configure_gemini_ai(self):
-        """Configure the Gemini AI API key and model."""
-        api_key, ok = QInputDialog.getText(
-            self,
-            "Gemini AI Configuration",
-            "Enter your Gemini API key:"
-        )
-        if ok and api_key:
-            try:
-                genai.configure(api_key=api_key)
-                self.gemini_model = genai.GenerativeModel('gemini-pro')  # Use Gemini Pro model
-                self.gemini_api_key = api_key  # Save the API key
-                QMessageBox.information(self, "Success", "Gemini AI configured successfully!")
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to configure Gemini AI: {str(e)}")
-        else:
-            QMessageBox.warning(self, "Error", "API key not provided.")
+    def get_colorful_button_style(self, base_color, hover_color):
+        """Return a dynamic colorful style for buttons."""
+        return f"""
+        QPushButton {{
+            background-color: {base_color};
+            border-radius: 8px;
+            padding: 5px;
+            font-weight: bold;
+            color: #FFFFFF;
+        }}
+        QPushButton:hover {{
+            background-color: {hover_color};
+        }}
+        """
+
+    def apply_button_styles(self):
+        """Apply colorful styles to buttons."""
+        colorful_style = self.get_colorful_button_style("#4682B4", "#5A9BD4")
+        self.send_button.setStyleSheet(colorful_style)
+        self.toggle_button.setStyleSheet(colorful_style)
 
     def logout(self):
-        """Handle user logout by closing the current session and returning to the login window."""
         QMessageBox.information(self, "Logout", "You have been logged out.")
-        self.close()  # Close the chat window
-        # Implement redirection to the login screen if applicable
-    
+        self.close()
+
     def send_message(self):
-        """Handle sending a message."""
         message = self.msg_input.text().strip()
         if message:
             self.chat_display.append(f"{self.username}: {message}")
             self.msg_input.clear()
 
     def show_user_context_menu(self, position):
-        """Show context menu for user actions."""
         menu = QMenu(self)
         menu.addAction("Follow", self.follow_user)
         menu.addAction("Unfollow", self.unfollow_user)
         menu.exec_(self.user_list.viewport().mapToGlobal(position))
 
     def follow_user(self):
-        """Handle following a user."""
         selected_user = self.user_list.currentItem()
         if selected_user:
             username = selected_user.text()
             self.chat_display.append(f"You are now following {username}.")
 
     def unfollow_user(self):
-        """Handle unfollowing a user."""
         selected_user = self.user_list.currentItem()
         if selected_user:
             username = selected_user.text()
             self.chat_display.append(f"You unfollowed {username}.")
 
     def translate_selected_message(self):
-        """Translate the selected message."""
         selected_text = self.chat_display.textCursor().selectedText()
         if selected_text:
-            # Provide a list of common languages
             language_options = {
                 "English": "en",
                 "Spanish": "es",
@@ -209,14 +168,7 @@ class ChatApp(QMainWindow):
                 "Tamil": "ta"
             }
             items = list(language_options.keys())
-            choice, ok = QInputDialog.getItem(
-                self,
-                "Translate",
-                "Choose target language:",
-                items,
-                0,
-                editable=False
-            )
+            choice, ok = QInputDialog.getItem(self, "Translate", "Choose target language:", items, 0, editable=False)
             if ok and choice:
                 target_language = language_options[choice]
                 try:
@@ -227,34 +179,12 @@ class ChatApp(QMainWindow):
         else:
             QMessageBox.warning(self, "Error", "Please select a message to translate.")
 
-    def open_ai_chatbot(self):
-        """Open the AI Chatbot and interact with Gemini AI."""
-        if not self.gemini_model:
-            self.configure_gemini_ai()  # Prompt for API key if not configured
-            if not self.gemini_model:  # If still not configured, return
-                return
-
-        user_message, ok = QInputDialog.getText(
-            self,
-            "AI Chatbot",
-            "Ask something to the AI Chatbot:"
-        )
-        if ok and user_message:
-            try:
-                # Send the user's message to Gemini AI
-                response = self.gemini_model.generate_content(user_message)
-                self.chat_display.append(f"AI Chatbot: {response.text}")
-            except Exception as e:
-                QMessageBox.critical(self, "AI Chatbot Error", f"Error communicating with AI Chatbot: {str(e)}")
-
     def share_file(self):
-        """Handle sharing a file."""
         file_path, _ = QFileDialog.getOpenFileName(self, "Select File")
         if file_path:
             self.chat_display.append(f"File shared: {file_path}")
 
     def export_chat(self):
-        """Handle exporting the chat."""
         file_path, _ = QFileDialog.getSaveFileName(self, "Save Chat", "", "Text Files (*.txt)")
         if file_path:
             with open(file_path, "w") as file:
@@ -262,54 +192,35 @@ class ChatApp(QMainWindow):
             QMessageBox.information(self, "Export Successful", f"Chat saved to {file_path}")
 
     def change_chat_display_background(self):
-        """Allow the user to select and change the chat display background color or set a single image."""
-        try:
-            items = ["Color", "Image"]
-            choice, ok = QInputDialog.getItem(
-                self,
-                "Change Chat Background",
-                "Choose background type:",
-                items,
-                0,
-                editable=False
-            )
-            if ok:
-                if choice == "Color":
-                    color = QColorDialog.getColor()
-                    if color.isValid():
-                        self.chat_display.setStyleSheet(f"background-color: {color.name()}; color: #000000;")
-                elif choice == "Image":
-                    file_path, _ = QFileDialog.getOpenFileName(
-                        self,
-                        "Select Background Image",
-                        "",
-                        "Image Files (*.png *.jpg *.jpeg *.bmp *.gif *.tiff *.svg *.webp)"
-                    )
-                    if file_path:
-                        self.chat_display.setStyleSheet(
-                            f"background-image: url('{file_path}'); background-repeat: no-repeat; "
-                            f"background-position: center; background-size: cover; color: #000000;"
-                        )
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"An error occurred: {str(e)}")
+        items = ["Color", "Image"]
+        choice, ok = QInputDialog.getItem(self, "Change Chat Background", "Choose background type:", items, 0, editable=False)
+        if ok:
+            if choice == "Color":
+                color = QColorDialog.getColor()
+                if color.isValid():
+                    self.chat_display.setStyleSheet(f"background-color: {color.name()}; color: #000000;")
+            elif choice == "Image":
+                file_path, _ = QFileDialog.getOpenFileName(self, "Select Background Image", "", "Image Files (*.png *.jpg *.jpeg *.bmp *.gif *.tiff *.svg *.webp)")
+                if file_path:
+                    self.chat_display.setStyleSheet(f"background-image: url('{file_path}'); background-repeat: no-repeat; background-position: center; background-size: cover; color: #000000;")
 
     def toggle_theme(self):
-        """Toggle between light and dark modes."""
+        """Toggle between light and dark themes with shutter-style icons."""
         if self.dark_mode:
             self.set_light_mode()
+            self.toggle_button.setIcon(QIcon("shutter_light_mode.png"))  # Replace with the light mode shutter icon
         else:
             self.set_dark_mode()
+            self.toggle_button.setIcon(QIcon("shutter_dark_mode.png"))  # Replace with the dark mode shutter icon
         self.dark_mode = not self.dark_mode
 
     def set_light_mode(self):
-        """Set light theme."""
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor(255, 255, 255))
         palette.setColor(QPalette.WindowText, QColor(0, 0, 0))
         QApplication.setPalette(palette)
 
     def set_dark_mode(self):
-        """Set dark theme."""
         palette = QPalette()
         palette.setColor(QPalette.Window, QColor(53, 53, 53))
         palette.setColor(QPalette.WindowText, QColor(255, 255, 255))
